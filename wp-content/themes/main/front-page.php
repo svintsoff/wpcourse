@@ -22,8 +22,19 @@
         ?>
 
             <div class="blocks__block">
+                <?php
+                    if (get_post_meta($post->ID, 'select', true) == 1) {
+                        echo '<p class="block__importance">ВАЖНО!</p>';
+                    }
+                ?>
                 <h2><?php the_title(); ?></h2>
-                <?php the_content(); ?>
+                <?php
+                    if (get_post_meta($post->ID, 'description', true) != "") {
+                        echo '<p>' . get_post_meta($post->ID, 'description', true) . '</p>';
+                    } else {
+                        the_content();
+                    }
+                 ?>
                 <div class="block__links">
                     <?php the_tags("", "", ""); ?>
                 </div>

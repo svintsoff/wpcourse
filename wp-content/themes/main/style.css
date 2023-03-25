@@ -119,6 +119,11 @@ ul {
     margin-right: 10px;
 }
 
+.block__importance {
+    font-size: 20px;
+    padding-top: 20px;
+}
+
 .case {
     padding: 35px 0;
     width: 75%;
