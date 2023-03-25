@@ -199,3 +199,11 @@ ul {
 .case:nth-last-child(1) {
     margin-bottom: 100px;
 }
+
+.form-state {
+    color: white;
+}
+
+form {
+    color: white;
+}
