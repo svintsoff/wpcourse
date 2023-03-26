@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  web:
+    image: nginx:1.18.0
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./:/app
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./:/app
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_USER: 'wp'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_DATABASE: 'wordpress'
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./docker/db/:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mywp-phpmyadmin
+    environment:
+      PMA_HOST: "db"
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: "root"
+    ports:
+      - '8083:80'
+volumes:
+  mysqldata: {}
