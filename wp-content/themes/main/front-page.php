@@ -73,5 +73,5 @@
     </section>
 
     <?php }} wp_reset_postdata(); ?>
-    <?php cus_reg_fun(); ?>
+    <?php registration(); ?>
 <?php get_footer(); ?>
