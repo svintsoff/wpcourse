@@ -39,19 +39,19 @@ function createForm() {
  * Check all needle fields for mistakes
  * If there are errors, render message with them
  */
-function validate($username, $password, $email) {
+function validate($data) {
     global $reg_errors;
     $reg_errors = new WP_Error;
 
-    if (empty($username) || empty($password) || empty($email)) {
+    if (empty($data[0]) || empty($data[1]) || empty($data[2])) {
         $reg_errors->add('field', 'Required form field is missing');
     }
 
-    if (4 > strlen($username)) {
+    if (4 > strlen($data[0])) {
         $reg_errors->add( 'username_length', 'Username too short. At least 4 characters is required' );
     }
 
-    if (username_exists($username)) {
+    if (username_exists($data[0])) {
         $reg_errors->add('user_name', 'Sorry, that username already exists!');
     }
 
@@ -66,24 +66,22 @@ function validate($username, $password, $email) {
 }
 
 /**
- * @param $username
- * @param $password
- * @param $email
+ * @param $data
  * @return void
  *
  * If there is no registration errors, build an array and insert the user,
  * then if there is WP_Error, throwing the Die exception
  */
-function register($username, $password, $email)
+function register($data)
 {
     global $reg_errors;
 
     if (1 > count($reg_errors->get_error_messages())) {
-        $userdata = array(
-            'user_login' => $username,
-            'user_email' => $email,
-            'user_pass' => $password,
-        );
+        $userdata = [
+            'user_login' => $data[0],
+            'user_email' => $data[1],
+            'user_pass' => $data[2],
+        ];
 
         $user = wp_insert_user($userdata);
 
@@ -97,25 +95,22 @@ function register($username, $password, $email)
 
 /*
  * If the request method is POST:
- *     1) Getting all needle params
+ *     1) Getting all needle params and sanitizing them
  *     2) Validating them by built-in WP functions
- *     3) If there is no WP_Error, sanitizing values and insert into DB with WP
+ *     3) If there is no WP_Error, insert into DB with WP
  * Else:
  *     1) Only render HTML registration form
  */
 function registration() {
     if (isset($_POST['submit'])) {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $email = $_POST['email'];
+        $data = [
+            'username' => sanitize_user($_POST['username']),
+            'password' => esc_attr($_POST['password']),
+            'email' => sanitize_email($_POST['email']),
+        ];
 
-        validate($username, $password, $email);
-
-        $username   =   sanitize_user($username);
-        $password   =   esc_attr($password);
-        $email      =   sanitize_email($email);
-
-        register();
+        validate($data);
+        register($data);
     }
 
     createForm();
