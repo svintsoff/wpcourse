@@ -4,35 +4,23 @@
  * Plugin Name: Кастом форма
  */
 
-function registration_form($username, $password, $email) {
-    echo '
-    <style>
-    div {
-        margin-bottom:2px;
-    }
-      
-    input{
-        margin-bottom:4px;
-    }
-    </style>
-    ';
-
+function createForm() {
     echo '
     <div class="form">
     <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
     <div>
     <label for="username">Username <strong>*</strong></label>
-    <input type="text" name="username" value="' . (isset($_POST['username']) ? $username : null) . '">
+    <input type="text" name="username" placeholder="Имя пользователя">
     </div>
       
     <div>
     <label for="password">Password <strong>*</strong></label>
-    <input type="password" name="password" value="' . (isset($_POST['password']) ? $password : null) . '">
+    <input type="password" name="password" placeholder="Пароль">
     </div>
       
     <div>
     <label for="email">Email <strong>*</strong></label>
-    <input type="text" name="email" value="' . (isset($_POST['email']) ? $email : null) . '">
+    <input type="text" name="email" placeholder="Почта">
     </div>
       
     
@@ -42,7 +30,16 @@ function registration_form($username, $password, $email) {
     ';
 }
 
-function registration_validation($username, $password, $email) {
+/**
+ * @param $username
+ * @param $password
+ * @param $email
+ * @return void
+ *
+ * Check all needle fields for mistakes
+ * If there are errors, render message with them
+ */
+function validate($username, $password, $email) {
     global $reg_errors;
     $reg_errors = new WP_Error;
 
@@ -68,9 +65,19 @@ function registration_validation($username, $password, $email) {
     }
 }
 
-function complete_registration()
+/**
+ * @param $username
+ * @param $password
+ * @param $email
+ * @return void
+ *
+ * If there is no registration errors, build an array and insert the user,
+ * then if there is WP_Error, throwing the Die exception
+ */
+function register($username, $password, $email)
 {
-    global $reg_errors, $username, $password, $email;
+    global $reg_errors;
+
     if (1 > count($reg_errors->get_error_messages())) {
         $userdata = array(
             'user_login' => $username,
@@ -83,45 +90,45 @@ function complete_registration()
         if (is_wp_error($user)) {
             wp_die($user->get_error_message());
         } else {
-            echo 'Registration complete. Goto <a href="/">main page</a>.';
+            echo '<p class="form-state">Registration complete. Goto <a href="/">main page</a>.</p>';
         }
     }
 }
 
-function cus_reg_fun() {
-    if ( isset($_POST['submit'] ) ) {
-        global $username, $password, $email;
+/*
+ * If the request method is POST:
+ *     1) Getting all needle params
+ *     2) Validating them by built-in WP functions
+ *     3) If there is no WP_Error, sanitizing values and insert into DB with WP
+ * Else:
+ *     1) Only render HTML registration form
+ */
+function registration() {
+    if (isset($_POST['submit'])) {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+        $email = $_POST['email'];
 
-        registration_validation(
-            $_POST['username'],
-            $_POST['password'],
-            $_POST['email']
-        );
+        validate($username, $password, $email);
 
-        // sanitize user form input
-        $username   =   sanitize_user($_POST['username']);
-        $password   =   esc_attr($_POST['password']);
-        $email      =   sanitize_email($_POST['email']);
+        $username   =   sanitize_user($username);
+        $password   =   esc_attr($password);
+        $email      =   sanitize_email($email);
 
-        // call @function complete_registration to create the user
-        // only when no WP_error is found
-        complete_registration();
+        register();
     }
 
-    if (!isset($username)) $username = "";
-    if (!isset($password)) $password = "";
-    if (!isset($email)) $email = "";
-
-    registration_form(
-        $username,
-        $password,
-        $email
-    );
+    createForm();
 }
 
+/*
+ * Creating shortcode to use form plugin everywhere in WP project
+ *
+ * Calling: registration()
+ */
 function custom_registration_shortcode() {
     ob_start();
-    cus_reg_fun();
+    registration();
     return ob_get_clean();
 }
 add_shortcode('plugin_reg', 'custom_registration_shortcode');
